@@ -48,14 +48,15 @@ def text_objects(text, font, colour):
 
 def button_display(text, colour, pos):
     text_surf, text_rect = text_objects(text, large_text, colour)
-    text_rect.center = ((display_width // 2),(display_height // 2) + 100)
+    text_rect.center = pos
     game_display.blit(text_surf, text_rect)
     pygame.display.update()
+    return text_rect
 
 def title_screen():
     intro()
     time.sleep(0.5)
-    button_display("Press any key to start", red, ((display_width // 2, display_height // 2)))
+    button_display("Press any key to start", red, (display_width // 2, display_height // 2 + 100))
     pygame.display.update()
     while True:
         for event in pygame.event.get():
@@ -65,11 +66,25 @@ def title_screen():
             elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
                 return True
 
+def halt():
+    pygame.display.quit()
+    pygame.quit()
+    quit()
+
 if __name__ == "__main__":
     if title_screen():
-        print("a")
-        # rest of the code goes here
+        game_display.fill(blue)
+        menu_iss_button_rect = button_display("ISS Guessing Game", red, (display_width // 2, display_height // 2 - 50))
+        menu_space_button_rect = button_display("Space Shooter Game", red, (display_width // 2, display_height // 2 + 50))
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    if menu_iss_button_rect.collidepoint(pos):
+                        print("ISS game!")
+                    elif menu_space_button_rect.collidepoint(pos):
+                        print("Shooter game!")
+                elif event.type == pygame.QUIT:
+                    halt()
     else:
-        pygame.display.quit()
-        pygame.quit()
-        quit()
+        halt()
