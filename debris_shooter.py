@@ -2,6 +2,7 @@ import math
 import random
 import pygame
 import os
+import time
 ourpath = os.getcwd()
 debris = []
 GRID_SIZE = (480,270)
@@ -11,20 +12,23 @@ GREEN = (0,0,255)
 WHITE = (255,255,255)
 BACKGROUND = (24, 19, 102)
 GRAY = (81, 87, 83)
+FPS = 60
 playerimage = pygame.image.load(os.path.join(ourpath,"images/playership.png"))
 playerimage = pygame.transform.scale(playerimage,(50,50))
 debris = []
 global debristomake
-debristomake = 100
+debristomake = 50
 SPEED = 1
 pygame.init()
 maxX = 1920
 maxY = 1080
 screen = pygame.display.set_mode((maxX,maxY))
-pygame.display.set_caption('RPi Game Shuttle')
+pygame.display.set_caption('RPI Game Shuttle')
 screen.fill(BLUE)
 pygame.display.update()
-font = pygame.font.SysFont("comicsansms", 16)
+font = pygame.font.Font(os.path.join(ourpath,r"fonts/omegaflight.ttf"), 32)
+centerRect = ( (maxX / 2) - 200,maxY/2,  20,20)
+#centerRect = (maxX - 200,0,20,20)
 def sign(value):
     return value and [-1, 1][value > 0]
 def makedebris():
@@ -35,11 +39,15 @@ def makedebris():
     debris.append(Debris(direction,pos,size))
     debristomake -= 1
 def display(text,color):
-    # To be replaced
+    textRender(text,centerRect,color)
+    pygame.display.update()
+    screen.fill(BACKGROUND)
+    time.sleep(0.5)
     pass
 def textRender(text, rect, forecolor):
     newRect = pygame.Rect(rect)
-    textobj, textRect = font.render(text, forecolor)
+    textobj = font.render(text,True, forecolor)
+    textRect = textobj.get_rect()
     textRect.center = newRect.center
     screen.blit(textobj, textRect)
 def diff(pos1,pos2):
@@ -66,7 +74,7 @@ class Debris:
         self.durability -= 1
         if self.durability <= 0:
             self.destroy()
-    def collide(self,pos):
+    def collide(self,pos,usingpygame=True):
         """
         difference = diffvec(pos,self.pos)
         if difference[0] <= self.size[0] and difference[1] <= self.size[1]:
@@ -74,7 +82,18 @@ class Debris:
         else:
             return False
         """
-        return self.rect.collidepoint([pos[0]*4,pos[1]*4])
+        if usingpygame:
+            return self.rect.collidepoint([pos[0]*4,pos[1]*4])
+        else:
+            difference = diffvec(pos,self.pos)
+            if difference[0] <= (self.size[0] + 12.5) and difference[1] <= (self.size[1] + 12.5):
+                return True
+            else:
+                return False
+    def update(self):
+        self.realpos = [self.pos[0]*4,self.pos[1]*4]
+        self.realsize = [self.size[0]*4,self.size[1]*4]
+        self.rect = pygame.Rect(*self.realpos, *self.size)
     def display(self):
         self.realpos = [self.pos[0]*4,self.pos[1]*4]
         self.realsize = [self.size[0]*4,self.size[1]*4]
@@ -88,15 +107,15 @@ class Player:
     def __init__(self,pos=[0,0]):
         self.pos = pos
         self.shootcooldown = 0
+        self.hitcooldown = 1
         self.targetpos = None
         self.health = 100
     def tick(self,events):
         for piece in debris:
-            if piece.collide(self.pos):
+            if piece.collide(self.pos,usingpygame=False) and not self.hitcooldown:
                 self.health -= (piece.size[0] + piece.size[1])//2
                 print(self.health)
-        if self.shootcooldown:
-            self.shootcooldown -= 1
+                self.hitcooldown = 2
         for event in events:
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
@@ -128,16 +147,22 @@ class Player:
             game_exit()
     def shoot(self,pos):
         if self.shootcooldown:
-            display(f"You can't shoot yet! You still have {self.shootcooldown} ticks/seconds.",RED)
-        for piece in debris:
-            if piece.rect.collidepoint(pos):
-                piece.gethit()
-                break
-        self.shootcooldown = 10
+            display(f"You can't shoot yet! You still have {self.shootcooldown} seconds.",RED)
+        else:
+            for piece in debris:
+                piece.update()
+                if piece.rect.collidepoint(pos):
+                    print(pos,piece.realpos)
+                    piece.gethit()
+                    break
+            self.shootcooldown = 10
 player = Player()
 def game_exit():
+    screen.fill(BACKGROUND)
     display("GAME OVER.",RED)
+    time.sleep(5)
     quit()
+counter = 0
 while True:
     events = pygame.event.get()
     player.tick(events)
@@ -150,5 +175,15 @@ while True:
         piece.display()
     realplayer = (int(player.pos[0]*4),int(player.pos[1]*4))
     screen.blit(playerimage,realplayer)
-    pygame.time.Clock().tick(60)
+    textRender(f"Health: {player.health}",(maxX - 200,0,20,20),RED)
+    textRender(f"Shoot cooldown: {player.shootcooldown}",(maxX - 200,50,20,20),RED)
     pygame.display.update()
+    counter += 1
+    if counter % FPS == 0:
+        if player.shootcooldown:
+            player.shootcooldown -= 1
+        if player.hitcooldown:
+            player.hitcooldown -= 1
+        if player.pos[1] <= 35:
+            player.health -= 10
+    pygame.time.Clock().tick(FPS)
