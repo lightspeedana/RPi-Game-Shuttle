@@ -21,6 +21,7 @@ COLOURS = {
 DEFAULT_FONT = pygame.font.Font("fonts/omegaflight.ttf", 40)
 LOGO = pygame.image.load("images/logo.png")
 LOGO = pygame.transform.scale(LOGO, (1000, 1000))
+INTRO_MUSIC = pygame.mixer.Sound("music/intro.ogg")
 DISPLAY = pygame.display.set_mode( DISPLAY_SIZE )
 
 ### FUNCTION DECLARATIONS ###
@@ -77,6 +78,7 @@ if __name__ == "__main__":
     
     logo_coords = DISPLAY_SIZE // (2, 1)
     print(logo_coords)
+    pygame.mixer.Sound.play(INTRO_MUSIC)
     while logo_coords[1] + 600 > (DISPLAY_HEIGHT // 2):
         DISPLAY.blit(LOGO, logo_coords // (2, 1))
         pygame.display.update()
