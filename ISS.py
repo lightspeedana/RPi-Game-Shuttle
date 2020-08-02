@@ -2,7 +2,6 @@ import pygame
 import pygame.freetype
 from pygame.sprite import Sprite
 from pygame.rect import Rect
-import sys
 import requests
 from PIL import Image, ImageDraw 
 
