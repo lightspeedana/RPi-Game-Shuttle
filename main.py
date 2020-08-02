@@ -52,6 +52,12 @@ def shooter_game() -> None:
     pass
 
 def iss_game() -> None:
+
+    # ISS game screen
+    DISPLAY_WIDTH  = 1080
+    DISPLAY_HEIGHT = 1080
+    DISPLAY_SIZE = numpy.array( (DISPLAY_WIDTH, DISPLAY_HEIGHT) )
+    DISPLAY = pygame.display.set_mode( DISPLAY_SIZE )
     image = pygame.image.load('out.jpg')
     DISPLAY.fill(COLOURS["blue"])
     pygame.display.flip()
