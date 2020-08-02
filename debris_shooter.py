@@ -6,6 +6,8 @@ GRID_SIZE = (480,270)
 RED = (255,0,0)
 BLUE = (0,255,255)
 GREEN = (0,0,255)
+WHITE = (255,255,255)
+BACKGROUND = (24, 19, 102)
 debris = []
 global debristomake
 debristomake = 20
@@ -17,6 +19,7 @@ screen = pygame.display.set_mode((maxX,maxY))
 pygame.display.set_caption('RPi Game Shuttle')
 screen.fill(BLUE)
 pygame.display.update()
+font = pygame.font.SysFont("comicsansms", 16)
 def sign(value):
     return value and [-1, 1][value > 0]
 def makedebris():
@@ -29,6 +32,11 @@ def makedebris():
 def display(text,color):
     # To be replaced
     pass
+def textRender(text, rect, forecolor):
+    newRect = pygame.Rect(rect)
+    textobj, textRect = font.render(text, forecolor)
+    textRect.center = newRect.center
+    screen.blit(textobj, textRect)
 def diff(pos1,pos2):
     diff1 = abs(pos1[0] - pos2[0])**2
     diff2 = abs(pos1[1] - pos2[1])**2
@@ -86,9 +94,16 @@ class Player:
         if self.targetpos:
             curx,cury = self.pos
             targetx,targety = self.targetpos
-            self.pos[0] += sign(targetx - curx)
-            self.pos[1] += sign(targety - cury)
-
+            distance = diff(self.pos,self.targetpos)
+            proportion = SPEED/distance
+            diffx = targetx - curx
+            diffy = targety - cury
+            diffx *= proportion
+            diffy *= proportion
+            self.pos[0] = math.floor(curx + diffx)
+            self.pos[1] = math.floor(cury + diffy)
+        if self.health <= 0:
+            game_exit()
     def shoot(self,pos):
         if self.shootcooldown:
             display(f"You can't shoot yet! You still have {self.shootcooldown} ticks/seconds.",RED)
@@ -98,9 +113,14 @@ class Player:
                 break
         self.shootcooldown = 10
 player = Player()
+def game_exit():
+    display("GAME OVER.",RED)
+    quit()
 while True:
     events = pygame.event.get()
     player.tick(events)
     while debristomake:
         makedebris()
+    screen.fill(BACKGROUND)
     pygame.time.Clock().tick(60)
+    pygame.display.update()
