@@ -52,7 +52,7 @@ class Debris:
     def gethit(self):
         self.durability -= 0.1
         if self.durability <= 0:
-            self.die()
+            self.destroy()
         debristomake -= 1
     def collide(self,pos):
         difference = diffvec(pos,self.pos)
