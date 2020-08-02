@@ -1,6 +1,8 @@
 import math
 import random
 import pygame
+import os
+ourpath = os.getcwd()
 debris = []
 GRID_SIZE = (480,270)
 RED = (255,0,0)
@@ -8,6 +10,8 @@ BLUE = (0,255,255)
 GREEN = (0,0,255)
 WHITE = (255,255,255)
 BACKGROUND = (24, 19, 102)
+GRAY = (81, 87, 83)
+playerimage = pygame.image.load(os.path.join(ourpath,"images/playership.png"))
 debris = []
 global debristomake
 debristomake = 20
@@ -52,6 +56,7 @@ class Debris:
         self.pos = pos
         self.direction = direction
         self.size = size
+        self.rect = None
     def move(self):
         self.pos[0] += self.direction[0]
         self.pos[1] += self.direction[1]
@@ -63,11 +68,17 @@ class Debris:
             self.destroy()
         debristomake -= 1
     def collide(self,pos):
+        """
         difference = diffvec(pos,self.pos)
         if difference[0] <= self.size[0] and difference[1] <= self.size[1]:
             return True
         else:
             return False
+        """
+        return self.rect.collidepoint([pos[0]*4,pos[1]*4])
+    def display(self):
+        self.rect = pygame.Rect(*self.pos, *self.size)
+        pygame.draw.rect(screen,GRAY,self.rect)
 class Player:
     def __init__(self,pos=[0,0]):
         self.pos = pos
@@ -122,5 +133,7 @@ while True:
     while debristomake:
         makedebris()
     screen.fill(BACKGROUND)
+    for piece in debris:
+        piece.display()
     pygame.time.Clock().tick(60)
     pygame.display.update()
