@@ -56,14 +56,14 @@ def button_display(text, colour, pos):
 def title_screen():
     intro()
     time.sleep(0.5)
-    button_display("Press any key to start", red, (display_width // 2, display_height // 2 + 100))
+    button_area = button_display("Press any key to start", red, (display_width // 2, display_height // 2 + 100))
     pygame.display.update()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
 
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.KEYDOWN or (event.type == pygame.MOUSEBUTTONDOWN and button_area.collidepoint(pygame.mouse.get_pos())):
                 return True
 
 def halt():
